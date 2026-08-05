@@ -17,8 +17,8 @@
 // -----------------------
 // 定义常量
 // -----------------------
-const char* ssid = "91";
-const char* password = "123456987";
+const char* ssid = "your_wifi_name";
+const char* password = "your_wifi_password";
 
 // -----------------------
 // 定义全局变量
@@ -87,6 +87,9 @@ void TaskOLED(void *pvParameters)
     {
         switch(CurrentState)
         {
+            // -----------------------
+            // 空闲状态：显示随机表情
+            // -----------------------
             case STATE_IDLE:
             EyeExpression_Update();
 
@@ -101,7 +104,9 @@ void TaskOLED(void *pvParameters)
 
             case STATE_INFO:
             
-
+            // -----------------------
+            // 显示时间和天气信息
+            // -----------------------
             xSemaphoreTake(TimeMutex,portMAX_DELAY);
 
             OLED_Print_Num(1,5, timeinfo.tm_hour,0,0);
@@ -117,6 +122,9 @@ void TaskOLED(void *pvParameters)
 
             xSemaphoreGive(TimeMutex);
 
+            // -----------------------
+            // 显示天气类型和温度
+            // -----------------------  
             OLED_Print(3,1,(char*)WeatherType.c_str());
             OLED_Print(4,1,(char*)Temperature.c_str());
         
@@ -165,12 +173,19 @@ void TaskASR(void *pvParameters)
                 CurrentState = STATE_WAKEUP;
                 if(WiFi.status() == WL_CONNECTED)
                 {
+                    // -----------------------
+                    // 获取天气信息
+                    // -----------------------
+                    xSemaphoreTake(TimeMutex,portMAX_DELAY);
                     getLocalTime(&timeinfo);
 
                     HTTPClient http;
                     http.begin("http://t.weather.itboy.net/api/weather/city/101010100");
                     int httpCode = http.GET();
 
+                    // -----------------------
+                    // 解析天气信息
+                    // -----------------------
                     if(httpCode == 200)
                     {
                         String payload = http.getString();
