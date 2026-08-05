@@ -47,10 +47,20 @@ void RTOS_Init(void)
   xTaskCreate(TaskASR,"ASR",4096,NULL,2,NULL);
 }
 
-/*void TaskOLEd(void *pvParameters)
+// -----------------------
+// OLED 任务函数
+// -----------------------
+// 任务功能：更新 OLED 显示，根据当前状态显示不同的信息
+// -----------------------
+/*
+void TaskOLED(void *pvParameters)
 {
-
-}*/
+    while(1)
+    {
+        
+    }
+}
+*/
 
 // -----------------------
 // 时钟任务函数
