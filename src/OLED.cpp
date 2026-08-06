@@ -1,4 +1,5 @@
 #include "OLED.h"
+#include "EyeExpression.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -17,11 +18,20 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C oled(U8G2_R0,U8X8_PIN_NONE);
 // -----------------------
 void OLED_Init(void)
 {
+  //****** 初始化 OLED 显示 *******/
   oled.begin();
   oled.enableUTF8Print();
-  oled.setFont(u8g2_font_8x13_tr);
+  oled.setFont(u8g2_font_8x13_tr);//u8g2_font_wqy13_t_gb2312中文用这个
   oled.clearBuffer();
   oled.sendBuffer();
+
+  //****** 初始化 EyeExpression *******/
+  EyeExpression_Init();
+  EyeExpression_Init();
+  EyeExpression_SetEmotion(EyeEmotion_Normal);
+  EyeExpression_SetRandomBlink(true);
+  EyeExpression_SetRandomLook(true);
+  EyeExpression_SetRandomBehavior(true);
 }
 
 // -----------------------
