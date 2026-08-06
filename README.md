@@ -132,3 +132,11 @@ pio device monitor -b 115200
 - U8g2 图形库和自绘帧缓冲
 - HTTP 请求和 JSON 解析
 - 状态机思路：待机、唤醒、信息页
+
+## Acknowledgements
+
+- 动态眼睛表情模块（`EyeExpression.cpp/.h`）的矢量绘制算法，
+  移植改编自 GitHub 上的开源项目 `eye_all_in_one_esp32`（原作者在仓库历史中，
+  具体用户名暂未找回，后续补全）。
+  本项目将其从 U8g2 绘图调用改写为原生 128x64 帧缓冲操作，
+  并整合进 FreeRTOS 多任务框架。
