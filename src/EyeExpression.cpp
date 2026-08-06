@@ -11,7 +11,7 @@
  */
 
 #include "EyeExpression.h"
-#include "OLED_Ruan.h"
+#include "OLED.h"
 #include <Arduino.h>
 #include <stdlib.h>
 
@@ -39,10 +39,11 @@ static inline void fb_setPixel(int16_t x, int16_t y, uint8_t color) {
 }
 
 /* ---- Flush entire framebuffer to OLED via the existing driver ---- */
+// 说明：将帧缓冲区内容刷新到 OLED 显示
+// -----------------------***
 static void fb_flush() {
-    // OLED_ShowExpression is the public API; it does SetCursor + WriteData
-    // page-by-page internally. Use it instead of calling OLED_WriteData directly.
-    OLED_ShowExpression(fb, 128, 64, 0, 0);
+    memcpy(oled.getBufferPtr(), fb, 1024);
+    oled.sendBuffer();
 }
 
 /* ========================================================================
