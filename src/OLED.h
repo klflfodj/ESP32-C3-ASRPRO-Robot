@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <U8g2lib.h>
+#include <stdarg.h>
 
 extern U8G2_SSD1306_128X64_NONAME_F_HW_I2C oled;
 
@@ -19,6 +20,8 @@ void OLED_SetFont(const uint8_t *font);
 
 /************ 文本 ************/
 void OLED_Print(uint8_t Line,uint8_t Column,const char *String);
+
+void OLED_Printf(uint8_t Line, uint8_t Column, const char *fmt, ...);
 
 void OLED_PrintNum(uint8_t Line,uint8_t Column,float Num,uint8_t DecimalPlaces,uint8_t ShowSign);
 

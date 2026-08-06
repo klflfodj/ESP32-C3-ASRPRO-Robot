@@ -1,5 +1,8 @@
 #include "OLED.h"
 
+#include <stdarg.h>
+#include <stdio.h>
+
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C oled(U8G2_R0,U8X8_PIN_NONE);
 /*
 * ESP32C3 Dev Module:
@@ -61,6 +64,25 @@ void OLED_Print(uint8_t Line, uint8_t Column, const char *string)
   uint8_t x = (Column-1)*8;
   uint8_t y = Line*16-2;
   oled.drawUTF8(x,y,string);
+}
+
+// -----------------------
+// OLED 显示格式化文本
+// -----------------------
+// 说明：在指定行和列显示格式化文本,用法和printf类似
+// -----------------------
+// 参数：Line - 行号，Column - 列号，fmt - 格式化字符串
+// -----------------------
+// 注意：使用可变参数时，需要包含 <stdarg.h> 头文件
+// -----------------------
+void OLED_Printf(uint8_t Line, uint8_t Column, const char *fmt, ...)
+{
+  char str[64];
+  va_list args;
+  va_start(args,fmt);
+  vsnprintf(str,sizeof(str),fmt,args);
+  va_end(args);
+  OLED_Print(Line, Column, str);
 }
 
 // -----------------------
