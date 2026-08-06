@@ -22,68 +22,149 @@ void OLED_Init(void)
 }
 
 // -----------------------
-// OLED 显示字符串
+// OLED 显示清屏
 // -----------------------
-// Line: 行号，范围 1-4
-// Column: 列号，范围 1-16
-// String: 字符串
+// 说明：清空 OLED 显示缓冲区，刷新显示
 // -----------------------
-// 说明：OLED 显示的每个字符宽度为 8 像素，高度为 16 像素
-//       OLED 显示的每行最多显示 16 个字符，每列最多显示
-//       4 行字符，超过范围的字符将不会显示
-// -----------------------
-void OLED_Print(uint8_t Line,uint8_t Column,const char *String)
+void OLED_Clear(void)
 {
-  uint8_t x = (Column - 1) * 8;
-  uint8_t y = Line * 16 -2;
-  oled.drawStr(x,y,String);
+  oled.clearBuffer();
+}
+
+// -----------------------
+// OLED 显示刷新
+// -----------------------
+// 说明：刷新 OLED 显示缓冲区，更新显示
+// -----------------------
+void OLED_Update(void)
+{
   oled.sendBuffer();
+}
+
+// -----------------------
+// OLED 设置字体
+// -----------------------
+// 说明：设置 OLED 显示字体
+// -----------------------
+void OLED_SerFont(const uint8_t *font)
+{
+  oled.setFont(font);
+}
+
+// -----------------------
+// OLED 显示文本
+// -----------------------
+// 说明：在指定行和列显示文本
+// -----------------------
+void OLED_Print(uint8_t Line, uint8_t Column, const char *string)
+{
+  uint8_t x = (Column-1)*8;
+  uint8_t y = Line*16-2;
+  oled.drawUTF8(x,y,string);
 }
 
 // -----------------------
 // OLED 显示数字
 // -----------------------
-// Line: 行号，范围 1-4
-// Column: 列号，范围 1-16
-// Num: 数字
-// DecimalPlaces: 小数位数，范围 0-6
-// ShowSign: 是否显示符号，0 不显示，1 显示
+// 说明：在指定行和列显示数字
 // -----------------------
-void OLED_Print_Num(uint8_t Line,uint8_t Column,float Num,uint8_t DecimalPlaces,uint8_t ShowSign)
+// 参数：Line - 行号，Column - 列号，Num - 数字，DecimalPlaces - 小数位数，ShowSign - 是否显示符号
+// -----------------------
+void OLED_Print_Num(uint8_t Line, uint8_t Column, float Num, uint8_t DecimalPlaces, uint8_t ShowSign)
 {
   char str[20];
-
   if (ShowSign)
   {
-    sprintf(str,"%+.*f",DecimalPlaces,Num);
+    sprintf(str, "%+.*f", DecimalPlaces, Num);
   }
   else
   {
-    sprintf(str,"%.*f",DecimalPlaces,Num);
+    sprintf(str, "%.*f", DecimalPlaces, Num);
   }
   OLED_Print(Line, Column, str);
 }
 
 // -----------------------
-// OLED 显示表情
+// OLED 绘制像素点
 // -----------------------
-// data: 表情数据
-// width: 表情宽度
-// height: 表情高度
-// x: 表情显示位置 X 坐标
-// y: 表情显示位置 Y 坐标
+// 说明：在指定坐标绘制像素点
 // -----------------------
-void OLED_ShowExpression(const uint8_t* data,uint8_t width,uint8_t height,uint8_t x,uint8_t y)
+// 参数：x - 横坐标，y - 纵坐标
+// -----------------------
+void OLED_Drawpixel(uint8_t x, uint8_t y)
 {
-  oled.drawXBMP(x,y,width,height,data);
-  oled.sendBuffer();
+  oled.drawPixel(x, y);
 }
 
 // -----------------------
-// OLED 清屏
+// OLED 绘制线
 // -----------------------
-void OLED_Clear(void)
+// 说明：在指定坐标绘制线
+// -----------------------
+// 参数：x1 - 起始横坐标，y1 - 起始纵坐标，x2 - 终止横坐标，y2 - 终止纵坐标
+// -----------------------
+void OLED_DrawLine(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2)
 {
-  oled.clearBuffer();
-  oled.sendBuffer();
+  oled.drawLine(x1, y1, x2, y2);
 }
+
+// -----------------------
+// OLED 绘制框
+// -----------------------
+// 说明：在指定坐标绘制框
+// -----------------------
+// 参数：x - 桪坐标，y - 框纵坐标，w - 框宽度，h - 框高度
+// -----------------------
+void OLED_DrawFrame(uint8_t x, uint8_t y, uint8_t w, uint8_t h)
+{
+  oled.drawFrame(x, y, w, h);
+}
+
+// -----------------------
+// OLED 绘制矩形
+// -----------------------
+// 说明：在指定坐标绘制矩形
+// -----------------------
+// 参数：x - 桪坐标，y - 框纵坐标，w - 框宽度，h - 框高度
+// -----------------------
+void OLED_DrawBox(uint8_t x, uint8_t y, uint8_t w, uint8_t h)
+{
+  oled.drawBox(x, y, w, h);
+}
+
+// -----------------------
+// OLED 绘制圆
+// -----------------------
+// 说明：在指定坐标绘制圆
+// -----------------------
+// 参数：x - 圆心横坐标，y - 圆心纵坐标，r - 圆半径
+// -----------------------
+void OLED_DrawCircle(uint8_t x, uint8_t y, uint8_t r)
+{
+  oled.drawCircle(x, y, r);
+}
+
+// -----------------------
+// OLED 绘制实心圆
+// -----------------------
+// 说明：在指定坐标绘制实心圆
+// -----------------------
+// 参数：x - 圆心横坐标，y - 圆心纵坐标，r - 圆半径
+// -----------------------
+void OLED_DrawDisc(uint8_t x, uint8_t y, uint8_t r)
+{
+  oled.drawDisc(x, y, r);
+}
+
+// -----------------------
+// OLED 绘制位图
+// -----------------------
+// 说明：在指定坐标绘制位图
+// -----------------------
+// 参数：x - 位图横坐标，y - 位图纵坐标，w - 位图宽度，h - 位图高度，bitmap - 位图数据指针
+// -----------------------
+void OLED_DrawBitmap(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t *bitmap)
+{
+  oled.drawBitmap(x, y, w, h, bitmap);
+}
+
