@@ -49,7 +49,7 @@ void OLED_Update(void)
 // -----------------------
 // 说明：设置 OLED 显示字体
 // -----------------------
-void OLED_SerFont(const uint8_t *font)
+void OLED_SetFont(const uint8_t *font)
 {
   oled.setFont(font);
 }
