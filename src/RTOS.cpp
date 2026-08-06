@@ -1,4 +1,6 @@
 #include "RTOS.h"
+#include "OLED_DrawWeatherIcon.h"
+#include "EyeExpression.h"
 
 String WeatherType = "Loading";       // 新增：天气类型英文
 String Temperature = "--";
@@ -19,31 +21,14 @@ enum RobotState
 RobotState CurrentState = STATE_IDLE;
 
 // -----------------------
-// 天气翻译函数
-// -----------------------
-// cn: 中文天气类型
-// 返回值: 英文天气类型
-// -----------------------
-String WeatherTranslate(String cn)
-{
-    if(cn=="晴") return "Sunny";
-    if(cn=="多云") return "Cloudy";
-    if(cn=="阴") return "Overcast";
-    if(cn=="小雨") return "Rain";
-
-    return "Unknown";
-}
-
-
-// -----------------------
 // RTOS 初始化函数
 // -----------------------
 void RTOS_Init(void)
 {
   TimeMutex = xSemaphoreCreateMutex();
 
-  xTaskCreate(TaskColock,"Clock",4096,NULL,1,NULL);
-  //xTaskCreate(TaskOLED,"OLED",4096,NULL,1,NULL);
+  xTaskCreate(TaskColock,"Clock",4096,NULL,3,NULL);
+  xTaskCreate(TaskOLED,"OLED",4096,NULL,1,NULL);
   xTaskCreate(TaskASR,"ASR",4096,NULL,2,NULL);
 }
 
@@ -52,15 +37,26 @@ void RTOS_Init(void)
 // -----------------------
 // 任务功能：更新 OLED 显示，根据当前状态显示不同的信息
 // -----------------------
-/*
 void TaskOLED(void *pvParameters)
 {
-    while(1)
+    while (1)
     {
-        
+        switch (CurrentState)
+        {
+            case STATE_IDLE:
+            case STATE_WAKEUP:
+                EyeExpression_Update();
+                vTaskDelay(pdMS_TO_TICKS(40));
+                break;
+
+            case STATE_INFO:
+                OLED_ShowInfoPage();
+                vTaskDelay(pdMS_TO_TICKS(1000));
+                break;
+        }
     }
 }
-*/
+
 
 // -----------------------
 // 时钟任务函数
@@ -129,10 +125,9 @@ void TaskASR(void *pvParameters)
                         if(!error)
                         {
                             String TypeCN =doc["data"]["forecast"][0]["type"];
-                            String TypeEN =WeatherTranslate(TypeCN);
                             String Temp =doc["data"]["wendu"];
 
-                            WeatherType = TypeEN;
+                            WeatherType = TypeCN;
                             Temperature = Temp;
 
                         }
@@ -162,11 +157,11 @@ void TaskASR(void *pvParameters)
                     // 发送格式：天气类型,温度,
                     // 例如：0,25,
                     int wCode = 0;
-                    if(WeatherType.indexOf("Sunny") >= 0) wCode = 0;
-                    else if(WeatherType.indexOf("Cloudy") >= 0) wCode = 1;
-                    else if(WeatherType.indexOf("Rain") >= 0) wCode = 2;
-                    else if(WeatherType.indexOf("Overcast") >= 0) wCode = 3;
-                    else if(WeatherType.indexOf("Snow") >= 0) wCode = 4;
+                    if(WeatherType.indexOf("晴") >= 0) wCode = 0;
+                    else if(WeatherType.indexOf("云") >= 0) wCode = 1;
+                    else if(WeatherType.indexOf("雨") >= 0) wCode = 2;
+                    else if(WeatherType.indexOf("阴") >= 0) wCode = 3;
+                    else if(WeatherType.indexOf("雪") >= 0) wCode = 4;
                     ASRSerial.printf("%d,%s,\n", wCode, Temperature.c_str());
                 }
                 if(cmd == "DATE")

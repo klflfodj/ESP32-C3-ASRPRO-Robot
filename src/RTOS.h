@@ -19,5 +19,6 @@ extern SemaphoreHandle_t TimeMutex;
 void RTOS_Init(void);
 void TaskColock(void *pvParameters);
 void TaskASR(void *pvParameters);
+void TaskOLED(void *pvParameters);
 
 #endif
