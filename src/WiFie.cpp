@@ -7,12 +7,23 @@ void WiFie_Init(void)
 {
   WiFi.begin(ssid,password);
 
-  while(WiFi.status()!=WL_CONNECTED)
+  int timeout = 0;
+
+  while(WiFi.status()!=WL_CONNECTED && timeout<20)
   {
     delay(500);
     Serial.print(".");
+    timeout++;
   }
-  Serial.println();
-  Serial.println("WiFi Connected");
+  if(WiFi.status()==WL_CONNECTED)
+  {
+    Serial.println();
+    Serial.println("WiFi Connected");
+  }
+  else
+  {
+    Serial.println();
+    Serial.println("WiFi Connect Failed");
+  }
 }
 
