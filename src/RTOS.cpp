@@ -1,6 +1,7 @@
 #include "RTOS.h"
 #include "OLED_DrawWeatherIcon.h"
 #include "EyeExpression.h"
+#include "WiFie.h"
 
 String WeatherType = "Loading";       // 新增：天气类型英文
 String Temperature = "--";
@@ -30,6 +31,7 @@ void RTOS_Init(void)
   xTaskCreate(TaskColock,"Clock",4096,NULL,3,NULL);
   xTaskCreate(TaskOLED,"OLED",4096,NULL,1,NULL);
   xTaskCreate(TaskASR,"ASR",4096,NULL,2,NULL);
+  xTaskCreate(TaskWiFie,"WiFie",2048,NULL,4,NULL);
 }
 
 // -----------------------
@@ -196,4 +198,22 @@ void TaskASR(void *pvParameters)
     }
 }
 
-
+// -----------------------
+// WiFie 任务函数
+// -----------------------
+// 任务功能：检查 WiFi 连接状态，如果断开则重新连接
+// -----------------------
+// 每 1 分钟检查一次 WiFi 连接状态
+// -----------------------
+void TaskWiFie(void *pvParameters)
+{
+  while(1)
+  {
+    if(WiFi.status() !=WL_CONNECTED)
+    {
+        Serial.println("WiFi Disconnected, Reconnecting...");
+        WiFie_Init();
+    }
+    vTaskDelay(pdMS_TO_TICKS(60000)); // 每 1 分钟检查一次 WiFi 连接状态
+  }
+}

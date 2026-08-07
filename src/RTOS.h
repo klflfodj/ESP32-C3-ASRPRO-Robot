@@ -20,5 +20,6 @@ void RTOS_Init(void);
 void TaskColock(void *pvParameters);
 void TaskASR(void *pvParameters);
 void TaskOLED(void *pvParameters);
+void TaskWiFie(void *pvParameters);
 
 #endif
