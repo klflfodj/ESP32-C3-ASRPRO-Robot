@@ -7,6 +7,7 @@
 #include <time.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include "esp_task_wdt.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -17,6 +18,9 @@ extern HardwareSerial ASRSerial;
 extern SemaphoreHandle_t TimeMutex;
 
 void RTOS_Init(void);
+
+void RTOS_WDT_Init(void);
+
 void TaskColock(void *pvParameters);
 void TaskASR(void *pvParameters);
 void TaskOLED(void *pvParameters);

@@ -28,6 +28,8 @@ void RTOS_Init(void)
 {
   TimeMutex = xSemaphoreCreateMutex();
 
+  RTOS_WDT_Init();
+
   xTaskCreate(TaskColock,"Clock",4096,NULL,3,NULL);
   xTaskCreate(TaskOLED,"OLED",4096,NULL,1,NULL);
   xTaskCreate(TaskASR,"ASR",4096,NULL,2,NULL);
@@ -41,6 +43,7 @@ void RTOS_Init(void)
 // -----------------------
 void TaskOLED(void *pvParameters)
 {
+    esp_task_wdt_add(NULL);
     while (1)
     {
         switch (CurrentState)
@@ -48,11 +51,13 @@ void TaskOLED(void *pvParameters)
             case STATE_IDLE:
             case STATE_WAKEUP:
                 EyeExpression_Update();
+                esp_task_wdt_reset();
                 vTaskDelay(pdMS_TO_TICKS(40));
                 break;
 
             case STATE_INFO:
                 OLED_ShowInfoPage();
+                esp_task_wdt_reset();
                 vTaskDelay(pdMS_TO_TICKS(1000));
                 break;
         }
@@ -65,11 +70,13 @@ void TaskOLED(void *pvParameters)
 // -----------------------
 void TaskColock(void *pvParameters)
 { 
+    esp_task_wdt_add(NULL);
   while(1)
   {
     xSemaphoreTake(TimeMutex,portMAX_DELAY);
     getLocalTime(&timeinfo);
     xSemaphoreGive(TimeMutex);
+    esp_task_wdt_reset();
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
@@ -81,6 +88,7 @@ void TaskColock(void *pvParameters)
 // -----------------------
 void TaskASR(void *pvParameters)
 {
+    esp_task_wdt_add(NULL);
     while(1)
     {
         // -----------------------
@@ -115,6 +123,7 @@ void TaskASR(void *pvParameters)
                     getLocalTime(&timeinfo);
 
                     HTTPClient http;
+                    http.setTimeout(3000);
                     http.begin("http://t.weather.itboy.net/api/weather/city/101010100");
                     int httpCode = http.GET();
 
@@ -194,6 +203,7 @@ void TaskASR(void *pvParameters)
                 //OLED_Clear();
             }
         }
+        esp_task_wdt_reset();
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
@@ -216,4 +226,10 @@ void TaskWiFie(void *pvParameters)
     }
     vTaskDelay(pdMS_TO_TICKS(60000)); // 每 1 分钟检查一次 WiFi 连接状态
   }
+}
+
+void RTOS_WDT_Init(void)
+{
+    esp_task_wdt_init(5, true); // 5秒超时，超时触发 panic 重启
+    Serial.println("Task WDT Started"); // 打印看门狗初始化成功信息
 }
