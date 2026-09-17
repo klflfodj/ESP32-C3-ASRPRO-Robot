@@ -1,5 +1,4 @@
-#ifndef __EYE_EXPRESSION_H
-#define __EYE_EXPRESSION_H
+#pragma once
 
 /*
  * ============================================================================
@@ -224,4 +223,3 @@ EyeEmotion EyeExpression_GetCurrentEmotion();
 }
 #endif
 
-#endif /* __EYE_EXPRESSION_H */

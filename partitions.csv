@@ -1,0 +1,24 @@
+# Name,   Type, SubType, Offset,   Size,     Flags
+#
+# Custom partition table for this project.
+#
+# Goal: the OTA-reserved app1 partition is dropped to size 0 and its flash is
+#       given to app0, so the application partition grows 1.25MB -> 2.5MB.
+#
+# Diff vs framework-arduinoespressif32/tools/partitions/default.csv:
+#   app0: 0x140000 (1.25MB) -> 0x280000 (2.5MB)  offset stays 0x10000, ends at 0x290000
+#   app1: 0x140000 (1.25MB) -> 0x0               kept as a name placeholder, uses no flash
+#   nvs / otadata / spiffs / coredump            offsets and sizes unchanged
+#
+# Trade-off: there is no second app slot any more, so OTA update is no longer possible.
+#
+# IMPORTANT: keep this file ASCII-only. PlatformIO parses it with the system
+#            default encoding (GBK on a Chinese Windows), so UTF-8 CJK comments
+#            make the final size check fail with UnicodeDecodeError.
+#
+nvs,      data, nvs,     0x9000,   0x5000,
+otadata,  data, ota,     0xe000,   0x2000,
+app0,     app,  ota_0,   0x10000,  0x280000,
+app1,     app,  ota_1,   0x290000, 0x0,
+spiffs,   data, spiffs,  0x290000, 0x160000,
+coredump, data, coredump,0x3F0000, 0x10000,

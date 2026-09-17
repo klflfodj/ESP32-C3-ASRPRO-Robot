@@ -10,8 +10,8 @@
  * ============================================================================
  */
 
-#include "EyeExpression.h"
-#include "OLED.h"
+#include "eye_expression_port.h"
+#include "oled_ssd1306.h"
 #include <Arduino.h>
 #include <stdlib.h>
 
@@ -646,3 +646,4 @@ void EyeExpression_SetRandomLook(bool enable) {
 EyeEmotion EyeExpression_GetCurrentEmotion() {
     return g_face.current_emotion;
 }
+
