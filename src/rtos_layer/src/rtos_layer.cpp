@@ -24,7 +24,7 @@ bool rtos_layer_init()
     esp_task_wdt_init(5, true); // 5秒超时，超时触发 panic 重启
     Serial.println("Task WDT Started"); // 打印看门狗初始化成功信息
 
-    xTaskCreate(TaskColock,"Clock",4096,NULL,3,NULL);
+    xTaskCreate(TaskClock,"Clock",4096,NULL,3,NULL);
     xTaskCreate(TaskOLED,"OLED",4096,NULL,1,NULL);
     xTaskCreate(TaskASR,"ASR",4096,NULL,2,NULL);
     xTaskCreate(TaskWiFi,"WiFi",2048,NULL,4,NULL);

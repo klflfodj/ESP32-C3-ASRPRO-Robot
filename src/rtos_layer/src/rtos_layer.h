@@ -32,7 +32,7 @@ extern RobotState CurrentState;
 
 bool rtos_layer_init();
 
-void TaskColock(void *pvParameters);
+void TaskClock(void *pvParameters);
 void TaskOLED(void *pvParameters);
 void TaskASR(void *pvParameters);
 void TaskWiFi(void *pvParameters);
