@@ -67,7 +67,7 @@ void TaskClock(void *pvParameters)
     while (1)
     {
         xSemaphoreTake(TimeMutex,portMAX_DELAY);
-        getLocalTime(&timeinfo);
+        getLocalTime(&timeinfo, 100);
         xSemaphoreGive(TimeMutex);
         esp_task_wdt_reset();
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -188,7 +188,7 @@ void TaskASR(void *pvParameters)
                 if(WiFi.status() == WL_CONNECTED)
                 {
                     xSemaphoreTake(TimeMutex, portMAX_DELAY);
-                    getLocalTime(&timeinfo);
+                    getLocalTime(&timeinfo, 100);
                     xSemaphoreGive(TimeMutex);
 
                     HTTPClient http;
@@ -230,7 +230,7 @@ void TaskASR(void *pvParameters)
                 if(cmd == "TIME")
                 {
                     xSemaphoreTake(TimeMutex,portMAX_DELAY);
-                    getLocalTime(&timeinfo);
+                    getLocalTime(&timeinfo, 100);
                     ASRSerial.printf("%02d,%02d,\n", timeinfo.tm_hour, timeinfo.tm_min);
                     xSemaphoreGive(TimeMutex);
                 }
@@ -257,7 +257,7 @@ void TaskASR(void *pvParameters)
                 if(cmd == "DATE")
                 {
                     xSemaphoreTake(TimeMutex,portMAX_DELAY);
-                    getLocalTime(&timeinfo);
+                    getLocalTime(&timeinfo, 100);
                     ASRSerial.printf("%02d,%02d,%02d,\n",
                         timeinfo.tm_year % 100,
                         timeinfo.tm_mon + 1,
@@ -267,7 +267,7 @@ void TaskASR(void *pvParameters)
                 if(cmd == "WEEK")
                 {
                     xSemaphoreTake(TimeMutex,portMAX_DELAY);
-                    getLocalTime(&timeinfo);
+                    getLocalTime(&timeinfo, 100);
                     ASRSerial.printf("%d,\n", timeinfo.tm_wday);
                     xSemaphoreGive(TimeMutex);
                 }
