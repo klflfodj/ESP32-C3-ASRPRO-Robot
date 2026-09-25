@@ -21,12 +21,12 @@ bool rtos_layer_init()
     TimeMutex    = xSemaphoreCreateMutex();
     WeatherMutex = xSemaphoreCreateMutex();
 
-    esp_task_wdt_init(5, true); // 5秒超时，超时触发 panic 重启
+    esp_task_wdt_init(6, true); // 6秒超时，超时触发 panic 重启
     Serial.println("Task WDT Started"); // 打印看门狗初始化成功信息
 
     xTaskCreate(TaskClock,"Clock",4096,NULL,3,NULL);
     xTaskCreate(TaskOLED,"OLED",4096,NULL,1,NULL);
-    xTaskCreate(TaskASR,"ASR",8192,NULL,2,NULL);
+    xTaskCreate(TaskASR,"ASR",4096,NULL,2,NULL);
     xTaskCreate(TaskWiFi,"WiFi",4096,NULL,4,NULL);
 
     return true;
@@ -67,7 +67,7 @@ void TaskClock(void *pvParameters)
     while (1)
     {
         xSemaphoreTake(TimeMutex,portMAX_DELAY);
-        getLocalTime(&timeinfo, 100);
+        getLocalTime(&timeinfo);
         xSemaphoreGive(TimeMutex);
         esp_task_wdt_reset();
         vTaskDelay(pdMS_TO_TICKS(1000));
@@ -188,7 +188,7 @@ void TaskASR(void *pvParameters)
                 if(WiFi.status() == WL_CONNECTED)
                 {
                     xSemaphoreTake(TimeMutex, portMAX_DELAY);
-                    getLocalTime(&timeinfo, 100);
+                    getLocalTime(&timeinfo);
                     xSemaphoreGive(TimeMutex);
 
                     HTTPClient http;
@@ -230,7 +230,7 @@ void TaskASR(void *pvParameters)
                 if(cmd == "TIME")
                 {
                     xSemaphoreTake(TimeMutex,portMAX_DELAY);
-                    getLocalTime(&timeinfo, 100);
+                    getLocalTime(&timeinfo);
                     ASRSerial.printf("%02d,%02d,\n", timeinfo.tm_hour, timeinfo.tm_min);
                     xSemaphoreGive(TimeMutex);
                 }
@@ -257,7 +257,7 @@ void TaskASR(void *pvParameters)
                 if(cmd == "DATE")
                 {
                     xSemaphoreTake(TimeMutex,portMAX_DELAY);
-                    getLocalTime(&timeinfo, 100);
+                    getLocalTime(&timeinfo);
                     ASRSerial.printf("%02d,%02d,%02d,\n",
                         timeinfo.tm_year % 100,
                         timeinfo.tm_mon + 1,
@@ -267,7 +267,7 @@ void TaskASR(void *pvParameters)
                 if(cmd == "WEEK")
                 {
                     xSemaphoreTake(TimeMutex,portMAX_DELAY);
-                    getLocalTime(&timeinfo, 100);
+                    getLocalTime(&timeinfo);
                     ASRSerial.printf("%d,\n", timeinfo.tm_wday);
                     xSemaphoreGive(TimeMutex);
                 }
