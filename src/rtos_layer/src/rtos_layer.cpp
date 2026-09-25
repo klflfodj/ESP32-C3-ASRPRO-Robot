@@ -13,21 +13,21 @@ static wifi_hal_config_t wifi_cfg;
 String WeatherType = "Loading";  
 String Temperature = "--";
 
-static const char* WIFI_SSID     = "your_ssid";
-static const char* WIFI_PASSWORD = "your_password";
+static const char* WIFI_SSID     = "118";
+static const char* WIFI_PASSWORD = "1234567890";
 
 bool rtos_layer_init()
 {
     TimeMutex    = xSemaphoreCreateMutex();
     WeatherMutex = xSemaphoreCreateMutex();
 
-    esp_task_wdt_init(5, true); // 5秒超时，超时触发 panic 重启
+    esp_task_wdt_init(6, true); // 6秒超时，超时触发 panic 重启
     Serial.println("Task WDT Started"); // 打印看门狗初始化成功信息
 
     xTaskCreate(TaskClock,"Clock",4096,NULL,3,NULL);
     xTaskCreate(TaskOLED,"OLED",4096,NULL,1,NULL);
     xTaskCreate(TaskASR,"ASR",4096,NULL,2,NULL);
-    xTaskCreate(TaskWiFi,"WiFi",2048,NULL,4,NULL);
+    xTaskCreate(TaskWiFi,"WiFi",4096,NULL,4,NULL);
 
     return true;
 }
