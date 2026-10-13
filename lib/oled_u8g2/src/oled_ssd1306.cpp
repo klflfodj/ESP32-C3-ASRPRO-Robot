@@ -260,7 +260,31 @@ void oled_draw_bitmap(uint8_t x, uint8_t y, uint8_t w, uint8_t h, const uint8_t 
     oled.drawBitmap(x, y, w, h, bitmap);
 }
 
+// oled 镜像
+void oled_mirror(uint8_t H, uint8_t V)
+{
+    u8x8_t *u8x8 = oled.getU8x8();
+    u8x8_cad_StartTransfer(u8x8);
 
+    if (H == 1)
+    {
+        u8x8_cad_SendCmd(u8x8, 0xA1);   // 左右镜像
+    }
+    else
+    {
+        u8x8_cad_SendCmd(u8x8, 0xA0);   // 正常显示
+    }
+    if (V == 1)
+    {
+        u8x8_cad_SendCmd(u8x8, 0xC0);   // 上下镜像
+    }
+    else
+    {
+        u8x8_cad_SendCmd(u8x8, 0xC8);   // 正常显示
+    }
+
+    u8x8_cad_EndTransfer(u8x8);
+}
 
 
 

@@ -13,8 +13,8 @@ static wifi_hal_config_t wifi_cfg;
 String WeatherType = "Loading";  
 String Temperature = "--";
 
-static const char* WIFI_SSID     = "118";
-static const char* WIFI_PASSWORD = "1234567890";
+static const char* WIFI_SSID     = "ry400";
+static const char* WIFI_PASSWORD = "000000001";
 
 bool rtos_layer_init()
 {
@@ -156,6 +156,8 @@ void TaskWiFi(void *pvParameters)
 void TaskASR(void *pvParameters)
 {
     esp_task_wdt_add(NULL);
+    uint32_t NoDataLoops = 0;      // 连续未收到数据的循环次数
+    bool RxHintPrinted = false;    // 引脚提示只打印一次
     while(1)
     {
         // -----------------------
@@ -173,6 +175,7 @@ void TaskASR(void *pvParameters)
         {
             
             String cmd = ASRSerial.readStringUntil('\n');
+            NoDataLoops = 0;
 
             cmd.trim();
 
@@ -280,6 +283,16 @@ void TaskASR(void *pvParameters)
             {
                 CurrentState = STATE_IDLE;
                 oled_clear();
+            }
+        }
+        else
+        {
+            NoDataLoops++;
+            // 15 秒（1500 × 10ms）没收到任何字节：多半是 ASR 的 TX/RX 接反了
+            if(!RxHintPrinted && NoDataLoops > 1500)
+            {
+                RxHintPrinted = true;
+                Serial.println("ASR: no data for 15s - check ASR TX -> ESP32 RX pin (or swap RX/TX)");
             }
         }
         esp_task_wdt_reset();

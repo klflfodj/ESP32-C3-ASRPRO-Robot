@@ -40,7 +40,7 @@ void oled_draw_disc(uint8_t x,uint8_t y,uint8_t r);
 
 void oled_draw_bitmap(uint8_t x,uint8_t y,uint8_t w,uint8_t h,const uint8_t *bitmap);
 
-
+void oled_mirror(uint8_t H, uint8_t V);
 
 
 

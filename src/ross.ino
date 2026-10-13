@@ -3,6 +3,15 @@
 #include "rtos_layer/src/rtos_layer.h"
 #include "app/src/ui.h"
 
+// -----------------------
+// ASR voice module on UART1 - pin mapping (ESP32 side)
+// -----------------------
+// ASR TX  -> ESP32 RX = GPIO16
+// ASR RX  -> ESP32 TX = GPIO17
+// If your two wires are the other way round, just swap these two numbers.
+#define ASR_RX_PIN 16
+#define ASR_TX_PIN 17
+
 struct tm timeinfo;
 HardwareSerial ASRSerial(1);
 SemaphoreHandle_t TimeMutex;
@@ -12,7 +21,8 @@ void setup()
 {
   /* 外设功能初始化 */
   Serial.begin(115200);
-  ASRSerial.begin(115200,SERIAL_8N1,5,4);
+  ASRSerial.begin(115200,SERIAL_8N1,ASR_RX_PIN,ASR_TX_PIN);
+  Serial.printf("ASR UART1: RX=GPIO%d TX=GPIO%d @115200 8N1\n", ASR_RX_PIN, ASR_TX_PIN);
 
   delay(500);
 

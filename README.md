@@ -30,8 +30,8 @@
 
 | ASR 模块 | ESP32 |
 |---|---|
-| ASR TX | GPIO5（ESP32 RX） |
-| ASR RX | GPIO4（ESP32 TX） |
+| ASR TX | GPIO17（ESP32 RX） |
+| ASR RX | GPIO16（ESP32 TX） |
 | GND | GND |
 
 注意：ASR 串口必须使用 3.3V 电平，不要直接接 5V 的串口模块。
@@ -102,9 +102,9 @@ pio device monitor -b 115200
 | `WEEK` | 显示星期 |
 | `SLEEP` | 回到表情待机页 |
 
-指令通过 `ASRSerial`（UART1，GPIO4/GPIO5）接收，USB `Serial` 主要用于调试输出。
+指令通过 `ASRSerial`（UART1，GPIO17/GPIO16）接收，USB `Serial` 主要用于调试输出。
 
-如果暂时没有语音模块，可以用 USB-TTL 接到 GPIO4/GPIO5 发送指令，或者临时在 `TaskASR` 里同时监听 `Serial`。
+如果暂时没有语音模块，可以用 USB-TTL 接到 GPIO17/GPIO16 发送指令，或者临时在 `TaskASR` 里同时监听 `Serial`。
 
 ## 设计说明
 

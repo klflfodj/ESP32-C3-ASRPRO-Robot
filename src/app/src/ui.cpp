@@ -16,6 +16,7 @@
 bool ui_init()
 {
     oled_ssd1306_init();
+    oled_mirror(1, 1);
 
     EyeExpression_Init();
     EyeExpression_SetEmotion(EyeEmotion_Normal);
