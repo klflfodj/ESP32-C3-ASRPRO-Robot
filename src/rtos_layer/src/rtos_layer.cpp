@@ -2,6 +2,7 @@
 
 #include "app/src/ui.h"
 #include "wifi_hal.h"
+#include "wifi_data.h"
 #include "eye_expression_port.h"
 #include "oled_ssd1306.h"
 
@@ -9,12 +10,10 @@ RobotState CurrentState = STATE_IDLE;
 
 static wifi_hal_t wifi_hal;
 static wifi_hal_config_t wifi_cfg;
+static const uint32_t WIFI_HAL_CONNECT_TIMEOUT_MS = 5000;
 
 String WeatherType = "Loading";  
 String Temperature = "--";
-
-static const char* WIFI_SSID     = "ry400";
-static const char* WIFI_PASSWORD = "000000001";
 
 bool rtos_layer_init()
 {
@@ -24,8 +23,8 @@ bool rtos_layer_init()
     esp_task_wdt_init(6, true); // 6秒超时，超时触发 panic 重启
     Serial.println("Task WDT Started"); // 打印看门狗初始化成功信息
 
-    xTaskCreate(TaskClock,"Clock",4096,NULL,3,NULL);
-    xTaskCreate(TaskOLED,"OLED",4096,NULL,1,NULL);
+    xTaskCreate(TaskClock,"Clock",2048,NULL,3,NULL);
+    xTaskCreate(TaskOLED,"OLED",2048,NULL,1,NULL);
     xTaskCreate(TaskASR,"ASR",4096,NULL,2,NULL);
     xTaskCreate(TaskWiFi,"WiFi",4096,NULL,4,NULL);
 
@@ -76,9 +75,9 @@ void TaskClock(void *pvParameters)
 
 void TaskWiFi(void *pvParameters)
 {
+    wifi_cfg.timeout_ms = WIFI_HAL_CONNECT_TIMEOUT_MS;
+
     wifi_hal_init(&wifi_hal, &wifi_cfg);
-    static uint8_t retry_cnt = 0;
-    static bool timeSynced = false;   // 是否已在 WiFi 连上后补发过 NTP 校时
 
     const uint32_t backoff_table[] = 
     {
@@ -93,7 +92,10 @@ void TaskWiFi(void *pvParameters)
 
     const uint8_t backoff_table_size = sizeof(backoff_table) / sizeof(backoff_table[0]);// 重试次数表大小
 
-    wifi_hal_connect(&wifi_hal, WIFI_SSID, WIFI_PASSWORD);
+    uint8_t  netIndex  = 0;          // 轮内游标：当前试到码表第几个
+    uint32_t cycle     = 0;          // 轮间档位：整圈失败次数，连上即清零
+    bool     time_synced = false;     // 每次"新连上"只补发一次 NTP 校时
+    bool     was_linked  = false;     // 上一轮循环链路是否处于已连接
 
     while (1)
     {
@@ -102,51 +104,71 @@ void TaskWiFi(void *pvParameters)
         switch (wifi_hal_get_state(&wifi_hal))
         {
             case WIFI_HAL_CONNECTED:
-                // -----------------------
-                // 首次连上 WiFi 后补一次 NTP 校时
-                // -----------------------
-                // 说明：setup() 里的 configTime() 可能在链路就绪前就发出请求，
-                //       这里保证连上之后再启动一次 SNTP。
-                //       重复调用是安全的（内部先 sntp_stop() 再重新 init），
-                //       用 timeSynced 锁住只跑一次，避免每秒重建 SNTP
-                //       导致请求永远发不完。
-                // -----------------------
-                if (!timeSynced)
+            {
+                was_linked = true;
+                cycle      = 0;
+
+                if (!time_synced)
                 {
                     configTime(8 * 3600, 0, "ntp.aliyun.com");
-                    timeSynced = true;
-                }
-                Serial.println("WiFi Connected");
-                retry_cnt = 0;
-                break;
-            
-            case WIFI_HAL_FAILED:
-            {
-                Serial.println("WiFi Connection Failed");
-                uint32_t delay_ms;
-                if (retry_cnt < backoff_table_size)
-                {
-                    delay_ms = backoff_table[retry_cnt];
-                }
-                else
-                {
-                    // 超过最大次数，使用最长退避时间
-                    delay_ms = backoff_table[backoff_table_size - 1];
-                    retry_cnt--;
+                    time_synced = true;
                 }
                 
-                retry_cnt++;
-                vTaskDelay(pdMS_TO_TICKS(delay_ms));
-
-                wifi_hal_connect(&wifi_hal, WIFI_SSID, WIFI_PASSWORD);
+                if (WiFi.status() != WL_CONNECTED)
+                {
+                    Serial.printf("WiFi lost: %s, retry same AP\n",
+                                  wifi_table[netIndex].ssid);
+                    wifi_hal_reset(&wifi_hal);   // -> IDLE，下轮重连
+                    time_synced = false;
+                    was_linked  = false;              
+                }
                 break;
             }
-            case WIFI_HAL_CONNECTING:
-                Serial.println("WiFi Connecting...");
-                break;
+            case WIFI_HAL_FAILED:
+            {
+                 Serial.printf("WiFi fail (%u/%u): %s\n",
+                              (unsigned)(netIndex + 1),
+                              (unsigned)wifi_table_size,
+                              wifi_table[netIndex].ssid);
+                wifi_hal_reset(&wifi_hal);       // -> IDLE，下轮由 IDLE 分支发起下一个
+                netIndex++;
+                if (netIndex >= wifi_table_size)
+                {
+                    // 一整圈都不行 -> 退避
+                    netIndex = 0;
 
+                    uint32_t delay_ms = (cycle < backoff_table_size)
+                                        ? backoff_table[cycle]
+                                        : backoff_table[backoff_table_size - 1];
+                    if (cycle < backoff_table_size) cycle++;
+
+                    Serial.printf("WiFi all %u APs failed, backoff %lums (cycle %lu)\n",
+                                  (unsigned)wifi_table_size,
+                                  (unsigned long)delay_ms,
+                                  (unsigned long)cycle);
+
+                    // 分片延时，顺手喂狗、顺便响应掉线
+                    for (uint32_t t = 0; t < delay_ms; t += 500)
+                    {
+                        uint32_t chunk = (delay_ms - t > 500) ? 500 : (delay_ms - t);
+                        vTaskDelay(pdMS_TO_TICKS(chunk));
+                    }
+                }
+                break;
+            }
             case WIFI_HAL_IDLE:
-                wifi_hal_connect(&wifi_hal, WIFI_SSID, WIFI_PASSWORD);
+            case WIFI_HAL_CONNECTING:
+            default:
+                if (wifi_hal_get_state(&wifi_hal) == WIFI_HAL_IDLE)
+                {
+                    Serial.printf("WiFi connecting (%u/%u): %s\n",
+                                  (unsigned)(netIndex + 1),
+                                  (unsigned)wifi_table_size,
+                                  wifi_table[netIndex].ssid);
+                    wifi_hal_connect(&wifi_hal,
+                                     wifi_table[netIndex].ssid,
+                                     wifi_table[netIndex].password);
+                }
                 break;
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
