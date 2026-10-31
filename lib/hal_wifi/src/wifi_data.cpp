@@ -1,12 +1,14 @@
 #include "wifi_data.h"
 
 // wifi 数据表
+// 注意：仓库里只保留占位符，不要把真实 SSID / 密码提交到公开仓库。
+//      表项数量决定轮询的 AP 个数；本机填写真实值后重新烧录即可。
 const wifi_data_t wifi_table[] =
 {
     //{"SSID", "PASSWORD"},
-    {"120", "1234567890"},
-    {"118", "1234567890"},
-    {"ry400", "000000001"},
+    {"YOUR_SSID_1", "YOUR_PASSWORD_1"},
+    {"YOUR_SSID_2", "YOUR_PASSWORD_2"},
+    {"YOUR_SSID_3", "YOUR_PASSWORD_3"},
 };
 
 // wifi 数据表大小
